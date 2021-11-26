@@ -335,6 +335,8 @@ uint16_t SC8815_GetOutputVoltage(void);             //获取 OTG 反向输出电压
 uint16_t SC8815_GetBusCurrentLimit(void);           //获取 VBUS 限流
 uint16_t SC8815_GetBatteryCurrLimit(void);          //获取电池限流
 uint16_t SC8815_VINREG_GetVoltage(void);            //获取 VINREG 电压
+uint16_t SC8815_GetMaxOutputVoltage(void);          //获取最大 OTG 可输出电压
+uint16_t SC8815_GetOutputVoltageSetp(void);         //获取 OTG 输出电压步进值
 
 //SC8815 设置硬件配置函数 (不需要 SC8815 PSTOP 引脚为高)
 void SC8815_OTG_Enable(void);                       //打开 OTG 反向放电模式

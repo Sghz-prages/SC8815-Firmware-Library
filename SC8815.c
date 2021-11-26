@@ -309,7 +309,7 @@ void SC8815_SetOutputVoltage(uint16_t NewVolt)
 
         //写入到 SC8815 VBUSREF_E_SET 寄存器
         I2C_WriteRegByte(SC8815_ADDR, SCREG_VBUSREF_E_SET, (uint8_t)tmp1);
-        I2C_WriteRegByte(SC8815_ADDR, SCREG_VBUSREF_E_SET2, (uint8_t)tmp2);
+        I2C_WriteRegByte(SC8815_ADDR, SCREG_VBUSREF_E_SET2, (uint8_t)tmp2 << 6);
     }
     else
     {
@@ -330,7 +330,7 @@ void SC8815_SetOutputVoltage(uint16_t NewVolt)
 
         //写入到 SC8815 VBUSREF_I_SET 寄存器
         I2C_WriteRegByte(SC8815_ADDR, SCREG_VBUSREF_I_SET, (uint8_t)tmp1);
-        I2C_WriteRegByte(SC8815_ADDR, SCREG_VBUSREF_I_SET2, (uint8_t)tmp2);
+        I2C_WriteRegByte(SC8815_ADDR, SCREG_VBUSREF_I_SET2, (uint8_t)tmp2 << 6);
     }
 }
 /****************************************
@@ -387,7 +387,7 @@ uint16_t SC8815_GetOutputVoltage(void)
     {
         //读取 VBUSREF_E_SET 寄存器
         tmp1 = I2C_ReadRegByte(SC8815_ADDR, SCREG_VBUSREF_E_SET);
-        tmp2 = I2C_ReadRegByte(SC8815_ADDR, SCREG_VBUSREF_E_SET2);
+        tmp2 = I2C_ReadRegByte(SC8815_ADDR, SCREG_VBUSREF_E_SET2 >> 6);
 
         //计算输出电压比率
         RATIO_Value = (double)SCHW_FB_RUP / SCHW_FB_RDOWM + 1.0;
@@ -396,7 +396,7 @@ uint16_t SC8815_GetOutputVoltage(void)
     {
         //读取 VBUSREF_E_SET 寄存器
         tmp1 = I2C_ReadRegByte(SC8815_ADDR, SCREG_VBUSREF_E_SET);
-        tmp2 = I2C_ReadRegByte(SC8815_ADDR, SCREG_VBUSREF_E_SET2);
+        tmp2 = I2C_ReadRegByte(SC8815_ADDR, SCREG_VBUSREF_E_SET2 >> 6);
 
         //取得VBUS电压的比率
         RATIO_Value = ((I2C_ReadRegByte(SC8815_ADDR, SCREG_RATIO) & 0x01) == 1) ? 5 : 12.5;
@@ -446,6 +446,54 @@ uint16_t SC8815_VINREG_GetVoltage(void)
     RATIO_Value = ((I2C_ReadRegByte(SC8815_ADDR, SCREG_CTRL0_SET) & 0x10) == 16) ? 40 : 100; //取得 VINREG 的比率
     tmp = I2C_ReadRegByte(SC8815_ADDR, SCREG_VINREG_SET);                                    //取得 VINREG 寄存器值
     return tmp * RATIO_Value;
+}
+/****************************************
+* @brief    获取 SC8815 OTG 模式下的最大可输出电压
+* @return   单位为 mV 的电压值
+*****************************************/
+uint16_t SC8815_GetMaxOutputVoltage(void)
+{
+    uint16_t tmp1, tmp2;
+    double RATIO_Value;
+
+    //判断 VBUS 电压反馈的模式
+    if (I2C_ReadRegByte(SC8815_ADDR, SCREG_CTRL1_SET) & 0x10)
+    {
+        //计算输出电压比率
+        RATIO_Value = (double)SCHW_FB_RUP / SCHW_FB_RDOWM + 1.0;
+    }
+    else
+    {
+        //取得 VBUS 电压的比率
+        RATIO_Value = ((I2C_ReadRegByte(SC8815_ADDR, SCREG_RATIO) & 0x01) == 1) ? 5 : 12.5;
+    }
+
+    //返回最高输出电压值
+    return 2048 * RATIO_Value;
+}
+/****************************************
+* @brief    获取 SC8815 OTG 模式下的输出电压步进值
+* @return   单位为 mV 的电压值
+*****************************************/
+uint16_t SC8815_GetOutputVoltageSetp(void)
+{
+    uint16_t tmp1, tmp2;
+    double RATIO_Value;
+
+    //判断 VBUS 电压反馈的模式
+    if (I2C_ReadRegByte(SC8815_ADDR, SCREG_CTRL1_SET) & 0x10)
+    {
+        //计算输出电压比率
+        RATIO_Value = (double)SCHW_FB_RUP / SCHW_FB_RDOWM + 1.0;
+    }
+    else
+    {
+        //取得 VBUS 电压的比率
+        RATIO_Value = ((I2C_ReadRegByte(SC8815_ADDR, SCREG_RATIO) & 0x01) == 1) ? 5 : 12.5;
+    }
+
+    //返回输出电压步进值
+    return 2 * RATIO_Value;
 }
 
 /****************************************
